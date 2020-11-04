@@ -14,29 +14,45 @@ set(
 include("tools/gate/cmake/HunterGate.cmake")
 
 HunterGate(
-  URL "https://github.com/cpp-pm/hunter/archive/v0.23.218.tar.gz"
-  SHA1 "9a3594a61227967fb92159339ba326701b287b19"
+        URL "https://github.com/cpp-pm/hunter/archive/v0.23.271.tar.gz"
+        SHA1 "2d6686024529b471e0cc3a4fc07d4d64b62a53ee"
 )
 
 
 # TODO: rename project and delete this comment
 project(template)
-string(APPEND CMAKE_CXX_FLAGS " -pedantic -Werror -Wall -Wextra")
+string(APPEND CMAKE_CXX_FLAGS " -pedantic -Werror -Wall -Wextra -pthread -std=c++11")
 string(APPEND CMAKE_CXX_FLAGS " -Wno-unused-command-line-argument")
 string(APPEND CMAKE_CXX_FLAGS " -Wshadow -Wnon-virtual-dtor")
+
+hunter_add_package(nlohmann_json)
+find_package(nlohmann_json CONFIG REQUIRED)
 
 hunter_add_package(GTest)
 find_package(GTest CONFIG REQUIRED)
 
+hunter_add_package(Boost COMPONENTS filesystem log system thread)
+find_package(Boost CONFIG REQUIRED filesystem log log_setup system thread)
+
 # TODO: change template word to project name and delete this comment
-add_library(template STATIC
-  # enum your files and delete this comment
-  ${CMAKE_CURRENT_SOURCE_DIR}/sources/source.cpp
-)
-add_executable(tests
-  # TODO: enum your files and delete this comment
-  ${CMAKE_CURRENT_SOURCE_DIR}/tests/test.cpp
-)
+
+  include_directories(${Boost_INCLUDE_DIRS})
+  add_library(template STATIC
+          # enum your files and delete this comment
+          ${CMAKE_CURRENT_SOURCE_DIR}/sources/hashCalc.cpp
+          include/hashCalc.hpp
+          sources/main.cpp)
+  add_executable(tests
+          # TODO: enum your files and delete this comment
+          ${CMAKE_CURRENT_SOURCE_DIR}/tests/test.cpp
+          include/hashCalc.hpp
+          sources/hashCalc.cpp
+          )
+
+  add_executable(main
+          ${CMAKE_CURRENT_SOURCE_DIR}/sources/main.cpp
+          include/hashCalc.hpp
+          sources/hashCalc.cpp)
 
 # TODO: change template word to project name and delete this comment
 target_include_directories(template 
@@ -45,8 +61,32 @@ target_include_directories(template
 target_include_directories(tests 
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+target_include_directories(main
+        PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
+        )
+
 # TODO: change template word to project name and delete this comment
-target_link_libraries(tests GTest::main template)
+target_link_libraries(
+        template
+        Boost::log_setup
+        Boost::log
+        Boost::thread
+        Boost::filesystem
+        Boost::system
+        nlohmann_json::nlohmann_json
+)
+target_link_libraries(tests GTest::gmock_main  Boost::log_setup
+        Boost::log
+        Boost::thread
+        Boost::filesystem
+        Boost::system
+        nlohmann_json::nlohmann_json template)
+target_link_libraries(main Boost::log_setup
+        Boost::log
+        Boost::thread
+        Boost::filesystem
+        Boost::system
+        nlohmann_json::nlohmann_json Boost::system)
 
 enable_testing()
 add_test(NAME unit_tests COMMAND tests) 
