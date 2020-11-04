@@ -57,6 +57,7 @@ find_package(Boost CONFIG REQUIRED filesystem log log_setup system thread)
 # TODO: change template word to project name and delete this comment
 target_include_directories(template 
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/third-party/PicoSHA2
 )
 target_include_directories(tests 
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
